@@ -785,6 +785,7 @@ class Test_sanitize_filename:
         [
             [1, TypeError],
             [True, TypeError],
+            [b"hello.txt", TypeError],
         ],
     )
     def test_exception_type(self, value, expected):

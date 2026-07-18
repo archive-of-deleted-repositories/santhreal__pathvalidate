@@ -58,17 +58,14 @@ def is_null_string(value: Any) -> bool:
     if value is None:
         return True
 
-    try:
-        return len(value.strip()) == 0
-    except AttributeError:
+    if not isinstance(value, str):
         return False
+
+    return len(value.strip()) == 0
 
 
 def _is_not_null_string(value: Any) -> bool:
-    try:
-        return len(value.strip()) > 0
-    except AttributeError:
-        return False
+    return isinstance(value, str) and len(value.strip()) > 0
 
 
 def _get_unprintable_ascii_chars() -> list[str]:
