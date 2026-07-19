@@ -640,6 +640,22 @@ class Test_sanitize_filename:
         assert is_valid_filename(filename, platform=test_platform)
 
     @pytest.mark.parametrize(
+        ["value", "expected"],
+        [
+            ["CON.", "CON_"],
+            ["AUX.", "AUX_"],
+            ["NUL..", "NUL_"],
+            ["COM1.", "COM1_"],
+            ["LPT9...", "LPT9_"],
+            ["CON.tar.", "CON_.tar"],
+        ],
+    )
+    def test_normal_reserved_name_with_trailing_period(self, value, expected):
+        filename = sanitize_filename(value, platform="windows")
+        assert filename == expected
+        assert is_valid_filename(filename, platform="windows")
+
+    @pytest.mark.parametrize(
         ["value", "reserved_name_handler", "expected"],
         [
             ["CON", ReservedNameHandler.add_trailing_underscore, "CON_"],

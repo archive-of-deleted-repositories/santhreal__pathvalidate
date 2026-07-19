@@ -88,6 +88,12 @@ class FileNameSanitizer(AbstractSanitizer):
                     sanitized_filename = re.sub(
                         re.escape(e.reserved_name), replacement_word, sanitized_filename
                     )
+                    # Reserved rewrite can leave a trailing period (e.g. "CON." -> "CON_.").
+                    if self._is_windows(include_universal=True):
+                        sanitized_filename = sanitized_filename.lstrip(" ")
+                        sanitized_filename = sanitized_filename.rstrip(" ")
+                        if sanitized_filename not in (".", ".."):
+                            sanitized_filename = sanitized_filename.rstrip(" .")
             elif e.reason == ErrorReason.INVALID_CHARACTER and self._is_windows(
                 include_universal=True
             ):
