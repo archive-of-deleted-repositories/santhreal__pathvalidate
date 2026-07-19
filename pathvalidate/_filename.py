@@ -65,6 +65,16 @@ class FileNameSanitizer(AbstractSanitizer):
 
         self._sanitize_regexp = self._get_sanitize_regexp()
 
+    @staticmethod
+    def _strip_win_filename_edges(name: str) -> str:
+        # Do not start a file or directory name with a space
+        name = name.lstrip(" ")
+        # Do not end a file or directory name with a space or a period
+        name = name.rstrip(" ")
+        if name not in (".", ".."):
+            name = name.rstrip(" .")
+        return name
+
     def sanitize(self, value: PathType, replacement_text: str = "") -> PathType:
         try:
             validate_pathtype(value, allow_whitespaces=not self._is_windows(include_universal=True))
@@ -88,22 +98,12 @@ class FileNameSanitizer(AbstractSanitizer):
                     sanitized_filename = re.sub(
                         re.escape(e.reserved_name), replacement_word, sanitized_filename
                     )
-                    # Reserved rewrite can leave a trailing period (e.g. "CON." -> "CON_.").
                     if self._is_windows(include_universal=True):
-                        sanitized_filename = sanitized_filename.lstrip(" ")
-                        sanitized_filename = sanitized_filename.rstrip(" ")
-                        if sanitized_filename not in (".", ".."):
-                            sanitized_filename = sanitized_filename.rstrip(" .")
+                        sanitized_filename = self._strip_win_filename_edges(sanitized_filename)
             elif e.reason == ErrorReason.INVALID_CHARACTER and self._is_windows(
                 include_universal=True
             ):
-                # Do not start a file or directory name with a space
-                sanitized_filename = sanitized_filename.lstrip(" ")
-
-                # Do not end a file or directory name with a space or a period
-                sanitized_filename = sanitized_filename.rstrip(" ")
-                if sanitized_filename not in (".", ".."):
-                    sanitized_filename = sanitized_filename.rstrip(" .")
+                sanitized_filename = self._strip_win_filename_edges(sanitized_filename)
             elif e.reason == ErrorReason.NULL_NAME:
                 sanitized_filename = self._null_value_handler(e)
 
